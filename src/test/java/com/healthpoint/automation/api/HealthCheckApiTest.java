@@ -6,7 +6,7 @@ import org.testng.annotations.Test;
 
 public class HealthCheckApiTest extends BaseApiTest {
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public void healthCheckTest() {
 
         RestAssured
@@ -16,4 +16,5 @@ public class HealthCheckApiTest extends BaseApiTest {
                 .then()
                 .statusCode(200);
     }
+
 }

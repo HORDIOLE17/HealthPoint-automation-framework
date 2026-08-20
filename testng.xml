@@ -1,12 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 
-<suite name="HealthPoint Automation Suite">
+<suite
+        name="HealthPoint Automation Suite"
+        parallel="methods"
+        thread-count="2">
 
-    <test name="API Tests">
+    <test name="API Test Suite">
+
         <classes>
             <class name="com.healthpoint.automation.api.HealthCheckApiTest"/>
             <class name="com.healthpoint.automation.api.GetPostAPITest"/>
+            <class name="com.healthpoint.automation.api.NegativeGetPostAPITest"/>
+            <class name="com.healthpoint.automation.api.CreatePostAPITest"/>
+            <class name="com.healthpoint.automation.api.UpdatePostAPITest"/>
+            <class name="com.healthpoint.automation.api.DeletePostAPITest"/>
         </classes>
+
     </test>
 
 </suite>

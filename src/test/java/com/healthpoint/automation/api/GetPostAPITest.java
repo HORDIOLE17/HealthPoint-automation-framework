@@ -9,7 +9,7 @@ import org.testng.annotations.Test;
 public class GetPostAPITest  extends BaseApiTest{
     private final PostClient postClient = new PostClient();
 
-    @Test
+    @Test(groups = {"smoke", "regression"})
     public  void  shouldReturnPostByid() {
         Post post = postClient.getPost(1);
 
