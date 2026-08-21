@@ -7,6 +7,10 @@
         parallel="methods"
         thread-count="2">
 
+    <listeners>
+        <listener class-name="com.healthpoint.automation.listeners.TestListener"/>
+    </listeners>
+
     <test name="API Test Suite">
         <classes>
             <class name="com.healthpoint.automation.api.HealthCheckApiTest"/>
