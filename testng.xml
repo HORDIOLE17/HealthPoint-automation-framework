@@ -8,7 +8,6 @@
         thread-count="2">
 
     <test name="API Test Suite">
-
         <classes>
             <class name="com.healthpoint.automation.api.HealthCheckApiTest"/>
             <class name="com.healthpoint.automation.api.GetPostAPITest"/>
@@ -17,7 +16,12 @@
             <class name="com.healthpoint.automation.api.UpdatePostAPITest"/>
             <class name="com.healthpoint.automation.api.DeletePostAPITest"/>
         </classes>
+    </test>
 
+    <test name="UI Test Suite">
+        <classes>
+            <class name="com.healthpoint.automation.ui.LoginUiTest"/>
+        </classes>
     </test>
 
 </suite>
