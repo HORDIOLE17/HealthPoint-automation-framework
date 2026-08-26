@@ -28,4 +28,10 @@
         </classes>
     </test>
 
+    <test name="Database Test Suite">
+        <classes>
+            <class name="com.healthpoint.automation.db.PatientDatabaseTest"/>
+        </classes>
+    </test>
+
 </suite>
