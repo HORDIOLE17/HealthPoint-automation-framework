@@ -4,7 +4,9 @@
 
 Java-based test automation framework covering API, UI, and database validation with parallel execution, cross-browser testing, automated reporting, CI/CD, and containerized browser execution.
 
-The project is structured around reusable framework components and separation of concerns. The same suite can run locally, in GitHub Actions, or through Docker with Selenium Grid / RemoteWebDriver.
+HealthPoint is a portfolio automation framework designed to demonstrate reusable SDET engineering patterns across independent public demo targets. SauceDemo is used for browser workflows, JSONPlaceholder for REST API validation, and an in-memory H2 database for SQL/data-layer scenarios. These targets are intentionally independent; the project demonstrates framework architecture rather than representing a single production healthcare application.
+
+The same suite can run locally, in GitHub Actions, or through Docker using RemoteWebDriver with Selenium standalone/grid-compatible browser containers.
 
 ## Tech Stack
 
@@ -17,7 +19,7 @@ The project is structured around reusable framework components and separation of
 - Allure Report
 - GitHub Actions
 - Docker & Docker Compose
-- Selenium Grid / RemoteWebDriver
+- RemoteWebDriver / Selenium standalone containers
 - WebDriverManager
 - AssertJ
 - Jackson
@@ -89,10 +91,9 @@ The complete suite is validated in GitHub Actions against both **Chrome** and **
                   v                   v
             Local Driver        RemoteWebDriver
                   |                   |
-           +------+-----+       Selenium Grid
+           +------+-----+       Standalone Browser
            |            |             |
-        Chrome       Firefox    +------+------+ 
-                              Chrome       Firefox
+        Chrome       Firefox    Chrome / Firefox
 ```
 
 ## Project Structure
@@ -151,9 +152,9 @@ This keeps HTTP request handling, browser lifecycle management, page interaction
 - Chrome and Firefox
 - local WebDriver execution
 - headless execution in CI
-- RemoteWebDriver execution through Selenium Grid
+- RemoteWebDriver execution against Selenium standalone/grid-compatible containers
 - runtime browser selection through the `BROWSER` environment variable
-- runtime grid selection through `SELENIUM_REMOTE_URL`
+- runtime remote endpoint selection through `SELENIUM_REMOTE_URL`
 - `ThreadLocal<WebDriver>` isolation for parallel tests
 
 Unsupported browser values fail fast with a clear exception.
@@ -248,9 +249,9 @@ Chrome  : PASS
 Firefox : PASS
 ```
 
-## Docker / Selenium Grid Execution
+## Docker / Remote Browser Execution
 
-Docker Compose provides separate Chrome and Firefox Selenium environments.
+Docker Compose provides separate Chrome and Firefox Selenium standalone environments. These containers expose the WebDriver endpoint used by `RemoteWebDriver` and are compatible with Selenium Grid-style remote execution without claiming a distributed hub/node topology.
 
 ```text
 Automation Test Container
@@ -327,9 +328,9 @@ Example:
 base.url=https://jsonplaceholder.typicode.com
 ```
 
-Environment variables can override runtime browser and Selenium Grid execution settings.
+The repository uses only disposable demo/test configuration. The H2 database runs in memory; no production credentials or external database secrets are required. Environment variables can override runtime browser and remote WebDriver settings.
 
-Credentials, tokens, and other secrets should not be committed to the repository.
+Credentials, tokens, and other real secrets should never be committed to the repository.
 
 ## Key Engineering Features
 
@@ -347,7 +348,7 @@ Credentials, tokens, and other secrets should not be committed to the repository
 - Unified GitHub Actions CI/CD browser matrix
 - Browser-specific CI artifacts
 - Dockerized Chrome and Firefox execution
-- RemoteWebDriver / Selenium Grid support
+- RemoteWebDriver with Selenium standalone/grid-compatible containers
 - Local, CI, and containerized execution modes
 - PreparedStatement-based database validation
 
@@ -380,8 +381,8 @@ The automation framework can run from a dedicated Maven container against standa
 
 ![Docker Containers](docs/images/docker-containers.png)
 
-### Selenium Grid
+### Remote Browser Execution
 
 UI automation supports RemoteWebDriver execution through Selenium standalone/grid-compatible browser containers.
 
-![Selenium Grid](docs/images/selenium-grid.png)
+![Remote Browser Execution](docs/images/selenium-grid.png)
