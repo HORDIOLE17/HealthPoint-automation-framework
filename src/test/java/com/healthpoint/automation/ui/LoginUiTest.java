@@ -19,25 +19,13 @@ public class LoginUiTest extends BaseUiTest {
     @Description("Verifies that a valid user can log in successfully")
     public void shouldLoginWithValidCredentials() {
 
-        LoginPage loginPage =
-                new LoginPage(DriverFactory.getDriver());
+        LoginPage loginPage = new LoginPage(DriverFactory.getDriver());
+        InventoryPage inventoryPage = new InventoryPage(DriverFactory.getDriver());
 
-        InventoryPage inventoryPage =
-                new InventoryPage(DriverFactory.getDriver());
+        loginPage.login("standard_user", "secret_sauce");
 
-        loginPage.login(
-                "standard_user",
-                "secret_sauce"
-        );
-
-        Assert.assertTrue(
-                inventoryPage.isInventoryPageDisplayed()
-        );
-
-        Assert.assertEquals(
-                inventoryPage.getPageTitle(),
-                "Products"
-        );
+        Assert.assertTrue(inventoryPage.isInventoryPageDisplayed());
+        Assert.assertEquals(inventoryPage.getPageTitle(), "Products");
     }
 
     @Test(groups = {"regression"})
@@ -45,17 +33,26 @@ public class LoginUiTest extends BaseUiTest {
     @Description("Verifies that login fails when invalid credentials are provided")
     public void shouldRejectInvalidCredentials() {
 
-        LoginPage loginPage =
-                new LoginPage(DriverFactory.getDriver());
+        LoginPage loginPage = new LoginPage(DriverFactory.getDriver());
 
-        loginPage.login(
-                "invalid_user",
-                "invalid_password"
-        );
+        loginPage.login("invalid_user", "invalid_password");
 
         Assert.assertTrue(
-                loginPage.getErrorMessage()
-                        .contains("Username and password do not match")
+                loginPage.getErrorMessage().contains("Username and password do not match")
+        );
+    }
+
+    @Test(groups = {"regression"})
+    @Severity(SeverityLevel.CRITICAL)
+    @Description("Verifies that a locked-out user cannot authenticate")
+    public void shouldRejectLockedOutUser() {
+
+        LoginPage loginPage = new LoginPage(DriverFactory.getDriver());
+
+        loginPage.login("locked_out_user", "secret_sauce");
+
+        Assert.assertTrue(
+                loginPage.getErrorMessage().contains("Sorry, this user has been locked out")
         );
     }
 }
