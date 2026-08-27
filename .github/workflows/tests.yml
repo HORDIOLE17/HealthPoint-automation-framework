@@ -1,10 +1,9 @@
-name: HealthPoint Cross-Browser Test Suite
+name: HealthPoint Automation CI
 
 on:
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
@@ -45,3 +44,21 @@ jobs:
           BROWSER: ${{ matrix.browser }}
           CI: "true"
         run: mvn clean test
+
+      - name: Generate Allure HTML report
+        if: always()
+        run: mvn allure:report
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ matrix.browser }}
+          path: target/allure-results
+
+      - name: Upload Allure HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-${{ matrix.browser }}
+          path: target/site/allure-maven-plugin
