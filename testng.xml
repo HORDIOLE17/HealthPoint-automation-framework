@@ -16,12 +16,14 @@
             <class name="com.healthpoint.automation.api.CreatePostAPITest"/>
             <class name="com.healthpoint.automation.api.UpdatePostAPITest"/>
             <class name="com.healthpoint.automation.api.DeletePostAPITest"/>
+            <class name="com.healthpoint.automation.api.PostContractAPITest"/>
         </classes>
     </test>
 
     <test name="UI Test Suite">
         <classes>
             <class name="com.healthpoint.automation.ui.LoginUiTest"/>
+            <class name="com.healthpoint.automation.ui.InventoryUiTest"/>
         </classes>
     </test>
 
