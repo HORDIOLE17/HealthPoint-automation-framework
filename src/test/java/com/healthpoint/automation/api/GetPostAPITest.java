@@ -3,6 +3,7 @@ package com.healthpoint.automation.api;
 import com.healthpoint.automation.base.BaseApiTest;
 import com.healthpoint.automation.clients.PostClient;
 import com.healthpoint.automation.models.Post;
+import com.healthpoint.automation.utils.ThreadLogger;
 import io.qameta.allure.Description;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
@@ -19,6 +20,8 @@ public class GetPostAPITest extends BaseApiTest {
     @Severity(SeverityLevel.CRITICAL)
     @Description("Verifies that an existing post can be retrieved by id")
     public void shouldReturnPostById() {
+
+        ThreadLogger.logCurrentThread("GetPostAPITest");
 
         Post post = postClient.getPost(1);
 

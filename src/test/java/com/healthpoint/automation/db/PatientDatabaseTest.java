@@ -2,6 +2,7 @@ package com.healthpoint.automation.db;
 
 import com.healthpoint.automation.base.BaseDatabaseTest;
 import com.healthpoint.automation.utils.DatabaseUtils;
+import com.healthpoint.automation.utils.ThreadLogger;
 import io.qameta.allure.Description;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
@@ -26,6 +27,8 @@ public class PatientDatabaseTest extends BaseDatabaseTest {
             "matches the expected seeded test data."
     )
     public void shouldReturnPatientFromDatabase() throws SQLException {
+
+        ThreadLogger.logCurrentThread("PatientDatabaseTest");
 
         try (
                 Connection connection = DatabaseUtils.getConnection();
