@@ -345,48 +345,6 @@ Credentials, tokens, and other secrets should not be committed to the repository
 - Selenium Grid browser matrix
 - Cloud-based test execution
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Execution Evidence
-
-### Allure Test Results
-
-The current suite includes API, UI, and database validation with all tests passing.
-
-![Allure Suites](docs/images/allure-suites.png)
-
-### GitHub Actions CI
-
-The repository uses GitHub Actions to run automated tests and generate Allure artifacts on every push and pull request to `main`.
-
-![GitHub Actions](docs/images/github-actions.png)
-
-### Dockerized Execution
-
-The test framework runs in a dedicated Maven container and connects to a separate Selenium Chrome container through Docker Compose.
-
-![Docker Containers](docs/images/docker-containers.png)
-
-### Selenium Grid
-
-UI tests execute through `RemoteWebDriver` against the Selenium Chrome container.
-
-![Selenium Grid](docs/images/selenium-grid.png)
-
-
 ## Execution Evidence
 
 ### Allure Test Results
