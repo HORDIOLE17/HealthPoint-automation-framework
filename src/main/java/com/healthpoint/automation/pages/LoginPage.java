@@ -24,7 +24,6 @@ public class LoginPage {
         wait.until(
                 ExpectedConditions.visibilityOfElementLocated(usernameInput)
         ).sendKeys(username);
-
         return this;
     }
 
@@ -32,7 +31,6 @@ public class LoginPage {
         wait.until(
                 ExpectedConditions.visibilityOfElementLocated(passwordInput)
         ).sendKeys(password);
-
         return this;
     }
 
@@ -46,6 +44,19 @@ public class LoginPage {
         return wait.until(
                 ExpectedConditions.visibilityOfElementLocated(errorMessage)
         ).getText();
+    }
+
+    public boolean isLoginFormDisplayed() {
+        return wait.until(
+                ExpectedConditions.visibilityOfElementLocated(loginButton)
+        ).isDisplayed();
+    }
+
+    public LoginPage waitUntilLoaded() {
+        wait.until(
+                ExpectedConditions.visibilityOfElementLocated(loginButton)
+        );
+        return this;
     }
 
     public void login(String username, String password) {

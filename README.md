@@ -1,10 +1,10 @@
 # HealthPoint Automation Framework
 
-[![HealthPoint CI](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/ci.yml)
+[![HealthPoint Automation CI](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/tests.yml/badge.svg)](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/tests.yml)
 
-Java-based test automation framework for API, UI, and database validation with parallel execution, automated reporting, CI/CD, and containerized browser execution.
+Java-based test automation framework covering API, UI, and database validation with parallel execution, cross-browser testing, automated reporting, CI/CD, and containerized browser execution.
 
-The framework is designed around reusable components and separation of concerns, allowing tests to run locally, in GitHub Actions, or through Docker with Selenium Grid.
+The project is structured around reusable framework components and separation of concerns. The same suite can run locally, in GitHub Actions, or through Docker with Selenium Grid / RemoteWebDriver.
 
 ## Tech Stack
 
@@ -25,13 +25,13 @@ The framework is designed around reusable components and separation of concerns,
 ## Current Test Suite
 
 ```text
-Tests run: 9
+Tests run: 15
 Failures: 0
 Errors: 0
 Skipped: 0
 ```
 
-The suite covers three automation layers:
+The complete suite is validated in GitHub Actions against both **Chrome** and **Firefox**.
 
 ### API Testing
 
@@ -41,15 +41,21 @@ The suite covers three automation layers:
 - POST / create validation
 - PUT / update validation
 - DELETE validation
-- Status code assertions
-- Response body validation
+- Response contract validation
+- Response field type validation
+- Negative empty-body validation
+- Status code and response body assertions
 
 ### UI Testing
 
-- Selenium WebDriver automation
-- Login flow validation
+- Valid login validation
+- Invalid credential validation
+- Locked-out user validation
 - Inventory page validation
+- Product sorting validation
+- Logout flow validation
 - Page Object Model
+- Explicit wait-based synchronization
 - Thread-safe WebDriver lifecycle
 
 ### Database Testing
@@ -57,7 +63,9 @@ The suite covers three automation layers:
 - H2 database setup
 - SQL query execution
 - Test data seeding
-- Patient record validation
+- Positive patient record validation
+- Negative nonexistent-record validation
+- PreparedStatement usage
 - Field-level assertions
 
 ## Architecture
@@ -79,23 +87,22 @@ The suite covers three automation layers:
                   +---------+---------+
                   |                   |
                   v                   v
-             ChromeDriver       RemoteWebDriver
-                                      |
-                                      v
-                              Selenium Grid
-                                      |
-                                      v
-                              Docker Chrome
+            Local Driver        RemoteWebDriver
+                  |                   |
+           +------+-----+       Selenium Grid
+           |            |             |
+        Chrome       Firefox    +------+------+ 
+                              Chrome       Firefox
 ```
 
 ## Project Structure
 
 ```text
-Healthpoint-automation-framework
+HealthPoint-automation-framework
 |
 |-- .github/
 |   `-- workflows/
-|       `-- ci.yml
+|       `-- tests.yml
 |
 |-- src/
 |   |-- main/
@@ -115,8 +122,7 @@ Healthpoint-automation-framework
 |       |   |-- db/
 |       |   |-- listeners/
 |       |   |-- retry/
-|       |   |-- ui/
-|       |   `-- utils/
+|       |   `-- ui/
 |       `-- resources/
 |
 |-- Dockerfile
@@ -130,25 +136,27 @@ Healthpoint-automation-framework
 
 The framework separates test scenarios from implementation details.
 
-For API testing:
-
 ```text
-Test -> PostClient -> REST Assured -> API
+API: Test -> PostClient -> REST Assured -> API
+UI:  Test -> Page Object -> DriverFactory -> WebDriver
+DB:  Test -> DatabaseUtils -> SQL -> H2
 ```
 
-For UI testing:
+This keeps HTTP request handling, browser lifecycle management, page interactions, database access, and assertions in separate layers.
 
-```text
-Test -> Page Object -> DriverFactory -> WebDriver
-```
+## Cross-Browser Driver Management
 
-For database testing:
+`DriverFactory` supports:
 
-```text
-Test -> DatabaseUtils -> SQL -> H2
-```
+- Chrome and Firefox
+- local WebDriver execution
+- headless execution in CI
+- RemoteWebDriver execution through Selenium Grid
+- runtime browser selection through the `BROWSER` environment variable
+- runtime grid selection through `SELENIUM_REMOTE_URL`
+- `ThreadLocal<WebDriver>` isolation for parallel tests
 
-This keeps request handling, browser management, database access, and test assertions in separate layers.
+Unsupported browser values fail fast with a clear exception.
 
 ## Parallel Execution
 
@@ -160,30 +168,30 @@ TestNG runs test methods in parallel:
        thread-count="2">
 ```
 
-WebDriver instances are managed using:
+WebDriver instances are isolated with:
 
 ```java
 ThreadLocal<WebDriver>
 ```
 
-This prevents parallel UI tests from sharing the same browser instance.
+This prevents parallel UI tests from sharing a browser session.
 
-Parallel execution has been verified through thread-level logging during test runs.
+## Retry and Failure Handling
 
-## Retry Handling
-
-The framework includes automatic retry handling for transient failures using TestNG:
+The framework includes TestNG-based transient failure handling through:
 
 - `RetryAnalyzer`
 - `RetryTransformer`
 
-Retries are intentionally limited to one additional attempt to avoid masking genuine failures.
+Retries are intentionally limited to one additional attempt so genuine failures are not hidden.
+
+When a UI test fails, the TestNG listener captures a browser screenshot and attaches it to Allure.
 
 ## Allure Reporting
 
-Allure reporting is integrated with Maven and TestNG.
+Allure is integrated with Maven and TestNG.
 
-Generate a report:
+Generate a report locally:
 
 ```bash
 mvn allure:report
@@ -197,64 +205,82 @@ Reports include:
 - Test descriptions
 - Execution results
 - Environment metadata
-
-Environment information includes Java, Maven, TestNG, Selenium, REST Assured, H2, Chrome, and CI execution details.
+- Failure screenshots for UI failures
 
 ## CI/CD
 
-GitHub Actions automatically executes the test suite on pushes and pull requests to `main`.
+A single GitHub Actions workflow executes the complete suite on pushes and pull requests to `main` using a browser matrix:
 
 ```text
-Git Push / Pull Request
-          |
-          v
-    GitHub Actions
-          |
-          v
-      Java 17
-          |
-          v
-    mvn clean test
-          |
-          v
-     Allure Report
-          |
-          v
-   CI Artifacts
+             Pull Request / Push
+                     |
+                     v
+             GitHub Actions
+                     |
+              +------+------+
+              |             |
+              v             v
+           Chrome        Firefox
+              |             |
+              +------+------+
+                     |
+               mvn clean test
+                     |
+                     v
+                Allure Report
+                     |
+                     v
+             Browser Artifacts
 ```
 
-The pipeline publishes:
+For each browser, the pipeline:
 
-- Allure raw results
-- Allure HTML report
+1. configures Java 17 and the selected browser;
+2. runs the full Maven/TestNG suite;
+3. generates an Allure HTML report;
+4. uploads raw Allure results;
+5. uploads the browser-specific Allure HTML artifact.
 
-## Docker Execution
-
-The framework supports fully containerized execution with Docker Compose.
+Current cross-browser CI status:
 
 ```text
-+---------------------------+
-| healthpoint-tests         |
-| Java 17 + Maven           |
-| Automation Framework      |
-+-------------+-------------+
-              |
-              | RemoteWebDriver
-              v
-+---------------------------+
-| healthpoint-selenium      |
-| Selenium Standalone       |
-| Chrome                    |
-+---------------------------+
+Chrome  : PASS
+Firefox : PASS
 ```
 
-The test container communicates with Selenium through the Docker network:
+## Docker / Selenium Grid Execution
+
+Docker Compose provides separate Chrome and Firefox Selenium environments.
 
 ```text
-http://selenium-chrome:4444
+Automation Test Container
+          |
+          | RemoteWebDriver
+          v
+Selenium Standalone Browser
+     Chrome or Firefox
 ```
 
-This separates the automation runtime from the browser runtime and provides a reproducible execution environment.
+Chrome profile:
+
+```bash
+docker compose --profile chrome up --build
+```
+
+Firefox profile:
+
+```bash
+docker compose --profile firefox up --build
+```
+
+Remote endpoints inside the Docker network are:
+
+```text
+Chrome  -> http://selenium-chrome:4444
+Firefox -> http://selenium-firefox:4444
+```
+
+This separates the automation runtime from the browser runtime and provides reproducible browser execution.
 
 ## Running Locally
 
@@ -262,45 +288,29 @@ Requirements:
 
 - Java 17+
 - Maven
-- Google Chrome
+- Chrome or Firefox
 
-Run all tests:
+Run the default configured browser:
 
 ```bash
 mvn clean test
 ```
 
-Expected result:
-
-```text
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
-BUILD SUCCESS
-```
-
-## Running with Docker
-
-Requirements:
-
-- Docker
-- Docker Compose
-
-Build and execute the complete environment:
+Run with an explicit browser:
 
 ```bash
-docker compose up --build
+BROWSER=chrome mvn clean test
 ```
-
-Expected result:
-
-```text
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
-BUILD SUCCESS
-```
-
-Stop the environment:
 
 ```bash
-docker compose down
+BROWSER=firefox mvn clean test
+```
+
+Expected suite result:
+
+```text
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
 ```
 
 ## Configuration
@@ -317,57 +327,61 @@ Example:
 base.url=https://jsonplaceholder.typicode.com
 ```
 
+Environment variables can override runtime browser and Selenium Grid execution settings.
+
 Credentials, tokens, and other secrets should not be committed to the repository.
 
 ## Key Engineering Features
 
 - Multi-layer API, UI, and database automation
-- Reusable API client architecture
+- Reusable REST Assured API client architecture
+- API contract and negative validation
 - Page Object Model
+- Explicit UI synchronization
+- Chrome and Firefox cross-browser execution
 - Thread-safe WebDriver management
 - Parallel TestNG execution
 - Automatic retry handling
-- Allure reporting
-- Environment metadata
-- GitHub Actions CI/CD
-- Dockerized test execution
-- RemoteWebDriver
-- Selenium Grid
-- Local and containerized execution
+- Failure screenshot attachments
+- Allure reporting and environment metadata
+- Unified GitHub Actions CI/CD browser matrix
+- Browser-specific CI artifacts
+- Dockerized Chrome and Firefox execution
+- RemoteWebDriver / Selenium Grid support
+- Local, CI, and containerized execution modes
+- PreparedStatement-based database validation
 
 ## Future Improvements
 
-- Cross-browser execution
-- Parameterized environments
-- Expanded negative API coverage
-- Additional UI scenarios
+- Parameterized application environments
 - External test data management
-- Selenium Grid browser matrix
-- Cloud-based test execution
+- Additional end-to-end business workflows
+- API schema validation using formal JSON Schema files
+- Cloud-based browser execution
+- Test result trend/history publishing
 
 ## Execution Evidence
 
 ### Allure Test Results
 
-The current suite includes API, UI, and database validation with all tests passing.
+The suite contains API, UI, and database validation with automated Allure reporting.
 
 ![Allure Suites](docs/images/allure-suites.png)
 
 ### GitHub Actions CI
 
-The repository uses GitHub Actions to run automated tests and generate Allure artifacts on every push and pull request to `main`.
+GitHub Actions executes the test suite automatically and publishes Allure artifacts.
 
 ![GitHub Actions](docs/images/github-actions.png)
 
 ### Dockerized Execution
 
-The test framework runs in a dedicated Maven container and connects to a separate Selenium Chrome container through Docker Compose.
+The automation framework can run from a dedicated Maven container against standalone Selenium browser containers.
 
 ![Docker Containers](docs/images/docker-containers.png)
 
 ### Selenium Grid
 
-UI tests execute through `RemoteWebDriver` against the Selenium Chrome container.
+UI automation supports RemoteWebDriver execution through Selenium standalone/grid-compatible browser containers.
 
 ![Selenium Grid](docs/images/selenium-grid.png)
-
