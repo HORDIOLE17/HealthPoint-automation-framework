@@ -1,9 +1,10 @@
 package com.healthpoint.automation.pages;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.Point;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -60,49 +61,35 @@ public class InventoryPage {
     public LoginPage logout() {
         wait.until(ExpectedConditions.elementToBeClickable(menuButton)).click();
 
-        wait.until(
-                ExpectedConditions.attributeToBe(
-                        menuContainer,
-                        "aria-hidden",
-                        "false"
-                )
+        waitForMenuToBeFullyOpen();
+
+        WebElement logout = wait.until(
+                ExpectedConditions.elementToBeClickable(logoutLink)
         );
 
-        WebElement stableLogoutLink = waitForElementToStopMoving(logoutLink);
-        stableLogoutLink.click();
-
-        wait.until(
-                ExpectedConditions.not(
-                        ExpectedConditions.urlContains("inventory")
-                )
-        );
+        new Actions(driver)
+                .moveToElement(logout)
+                .click()
+                .perform();
 
         return new LoginPage(driver).waitUntilLoaded();
     }
 
-    private WebElement waitForElementToStopMoving(By locator) {
-        Point[] previousPosition = {null};
-        int[] stableChecks = {0};
+    private void waitForMenuToBeFullyOpen() {
+        wait.until(currentDriver -> {
+            WebElement menu = currentDriver.findElement(menuContainer);
 
-        return wait.until(currentDriver -> {
-            WebElement element = currentDriver.findElement(locator);
-
-            if (!element.isDisplayed()) {
-                previousPosition[0] = null;
-                stableChecks[0] = 0;
-                return null;
+            if (!"false".equals(menu.getAttribute("aria-hidden"))) {
+                return false;
             }
 
-            Point currentPosition = element.getLocation();
+            Number left = (Number) ((JavascriptExecutor) currentDriver)
+                    .executeScript(
+                            "return arguments[0].getBoundingClientRect().left;",
+                            menu
+                    );
 
-            if (currentPosition.equals(previousPosition[0])) {
-                stableChecks[0]++;
-            } else {
-                previousPosition[0] = currentPosition;
-                stableChecks[0] = 0;
-            }
-
-            return stableChecks[0] >= 2 ? element : null;
+            return Math.abs(left.doubleValue()) < 1.0;
         });
     }
 }
