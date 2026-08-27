@@ -345,31 +345,17 @@ Credentials, tokens, and other secrets should not be committed to the repository
 - Selenium Grid browser matrix
 - Cloud-based test execution
 
-## Execution Evidence
 
-The framework is configured to run locally, in CI, and in a containerized Selenium environment.
 
-### Allure Test Report
 
-The current automated suite includes API, UI, and database validation tests.
 
-![Allure Test Report](docs/images/allure-overview.png)
 
-### CI/CD with GitHub Actions
 
-GitHub Actions automatically executes the test suite and validates changes pushed to the repository.
 
-![GitHub Actions](docs/images/github-actions.png)
 
-### Dockerized Test Execution
 
-The automation framework can run inside Docker together with a Selenium Chrome container.
 
-![Docker Test Execution](docs/images/docker-build-success.png)
 
-### Selenium Grid
 
-UI tests can execute against a containerized Selenium Grid using RemoteWebDriver.
 
-![Selenium Grid](docs/images/selenium-grid.png)
 
