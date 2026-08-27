@@ -1,0 +1,10 @@
+target
+.git
+.github
+.idea
+.allure
+allure-results
+allure-report
+*.log
+*.save
+.DS_Store

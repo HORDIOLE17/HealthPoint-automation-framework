@@ -1,0 +1,24 @@
+services:
+  selenium-chrome:
+    image: selenium/standalone-chrome:latest
+    container_name: healthpoint-selenium
+    shm_size: 2gb
+    ports:
+      - "4444:4444"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444/status"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  healthpoint-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: healthpoint-tests
+    depends_on:
+      selenium-chrome:
+        condition: service_healthy
+    environment:
+      SELENIUM_REMOTE_URL: http://selenium-chrome:4444
+      CI: "true"
