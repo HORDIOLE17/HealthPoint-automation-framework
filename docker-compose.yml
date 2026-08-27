@@ -1,24 +1,67 @@
 services:
+
   selenium-chrome:
     image: selenium/standalone-chrome@sha256:cd778b6f38d99d1e14a05a767f576aff2face98d5202a2192d857614c265ec4d
-    container_name: healthpoint-selenium
+    container_name: healthpoint-selenium-chrome
     shm_size: 2gb
     ports:
       - "4444:4444"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4444/status"]
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:4444/status
       interval: 5s
       timeout: 5s
       retries: 10
+    profiles:
+      - chrome
 
-  healthpoint-tests:
+  selenium-firefox:
+    image: selenium/standalone-firefox@sha256:54bf6b69b790212c5dd1ae4934241d2dccd6500b14269b91e7ddfeef3f32c2a6
+    container_name: healthpoint-selenium-firefox
+    shm_size: 2gb
+    ports:
+      - "4445:4444"
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:4444/status
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    profiles:
+      - firefox
+
+  healthpoint-tests-chrome:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: healthpoint-tests
+    container_name: healthpoint-tests-chrome
     depends_on:
       selenium-chrome:
         condition: service_healthy
     environment:
       SELENIUM_REMOTE_URL: http://selenium-chrome:4444
+      BROWSER: chrome
       CI: "true"
+    profiles:
+      - chrome
+
+  healthpoint-tests-firefox:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: healthpoint-tests-firefox
+    depends_on:
+      selenium-firefox:
+        condition: service_healthy
+    environment:
+      SELENIUM_REMOTE_URL: http://selenium-firefox:4444
+      BROWSER: firefox
+      CI: "true"
+    profiles:
+      - firefox

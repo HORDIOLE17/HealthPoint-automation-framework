@@ -1,4 +1,4 @@
-name: HealthPoint Test Suite
+name: HealthPoint Cross-Browser Test Suite
 
 on:
   push:
@@ -11,7 +11,15 @@ on:
 
 jobs:
   test:
+    name: Tests - ${{ matrix.browser }}
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser:
+          - chrome
+          - firefox
 
     steps:
       - name: Checkout repository
@@ -24,6 +32,16 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Run Maven tests
-        run: mvn clean test
+      - name: Set up Chrome
+        if: matrix.browser == 'chrome'
+        uses: browser-actions/setup-chrome@v1
 
+      - name: Set up Firefox
+        if: matrix.browser == 'firefox'
+        uses: browser-actions/setup-firefox@v1
+
+      - name: Run tests on ${{ matrix.browser }}
+        env:
+          BROWSER: ${{ matrix.browser }}
+          CI: "true"
+        run: mvn clean test
