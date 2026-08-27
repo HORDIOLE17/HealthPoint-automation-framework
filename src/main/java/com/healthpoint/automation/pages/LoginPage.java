@@ -52,6 +52,13 @@ public class LoginPage {
         ).isDisplayed();
     }
 
+    public LoginPage waitUntilLoaded() {
+        wait.until(
+                ExpectedConditions.visibilityOfElementLocated(loginButton)
+        );
+        return this;
+    }
+
     public void login(String username, String password) {
         enterUsername(username);
         enterPassword(password);
