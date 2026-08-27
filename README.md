@@ -1,175 +1,346 @@
 # HealthPoint Automation Framework
 
-I built this project to practice designing a reusable Java automation framework instead of keeping API tests as isolated scripts.
+[![HealthPoint CI](https://github.com/Hordyoleh17/Healthpoint-automation-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Hordyoleh17/Healthpoint-automation-framework/actions/workflows/ci.yml)
 
-The framework currently focuses on REST API testing with **Java 17, REST Assured, TestNG, and Maven**. I separated configuration, API requests, models, and test logic so the project can grow without putting everything inside the test classes.
+Java-based test automation framework for API, UI, and database validation with parallel execution, automated reporting, CI/CD, and containerized browser execution.
+
+The framework is designed around reusable components and separation of concerns, allowing tests to run locally, in GitHub Actions, or through Docker with Selenium Grid.
 
 ## Tech Stack
 
-* Java 17
-* REST Assured
-* TestNG
-* Maven
-* Git
-* GitHub
+- Java 17
+- Selenium WebDriver
+- REST Assured
+- TestNG
+- Maven
+- H2 Database
+- Allure Report
+- GitHub Actions
+- Docker & Docker Compose
+- Selenium Grid / RemoteWebDriver
+- WebDriverManager
+- AssertJ
+- Jackson
 
-## What Is Implemented
+## Current Test Suite
 
-The current version includes:
+```text
+Tests run: 9
+Failures: 0
+Errors: 0
+Skipped: 0
+```
 
-* REST API test automation
-* Reusable API client layer
-* Centralized configuration
-* Shared API test setup
-* Java models for response data
-* Status code validation
-* Response body validation
-* Health-check testing
-* TestNG suite configuration
-* Maven test execution
+The suite covers three automation layers:
+
+### API Testing
+
+- API health check
+- GET request validation
+- Negative GET / 404 validation
+- POST / create validation
+- PUT / update validation
+- DELETE validation
+- Status code assertions
+- Response body validation
+
+### UI Testing
+
+- Selenium WebDriver automation
+- Login flow validation
+- Inventory page validation
+- Page Object Model
+- Thread-safe WebDriver lifecycle
+
+### Database Testing
+
+- H2 database setup
+- SQL query execution
+- Test data seeding
+- Patient record validation
+- Field-level assertions
+
+## Architecture
+
+```text
+                         TestNG
+                            |
+             +--------------+--------------+
+             |              |              |
+             v              v              v
+         API Tests       UI Tests       DB Tests
+             |              |              |
+             v              v              v
+        PostClient      Page Objects   DatabaseUtils
+             |              |              |
+             v              v              v
+       REST Assured     DriverFactory      H2
+                            |
+                  +---------+---------+
+                  |                   |
+                  v                   v
+             ChromeDriver       RemoteWebDriver
+                                      |
+                                      v
+                              Selenium Grid
+                                      |
+                                      v
+                              Docker Chrome
+```
 
 ## Project Structure
 
 ```text
-HealthPoint-automation-framework
-│
-├── src
-│   ├── main
-│   │   ├── java/com/healthpoint/automation
-│   │   │   ├── clients
-│   │   │   │   └── PostClient.java
-│   │   │   ├── config
-│   │   │   │   └── ConfigReader.java
-│   │   │   └── models
-│   │   │       └── Post.java
-│   │   └── resources
-│   │       └── config.properties
-│   │
-│   └── test
-│       └── java/com/healthpoint/automation
-│           ├── api
-│           │   ├── GetPostAPITest.java
-│           │   └── HealthCheckApiTest.java
-│           └── base
-│               └── BaseApiTest.java
-│
-├── pom.xml
-├── testng.xml
-└── README.md
+Healthpoint-automation-framework
+|
+|-- .github/
+|   `-- workflows/
+|       `-- ci.yml
+|
+|-- src/
+|   |-- main/
+|   |   |-- java/com/healthpoint/automation/
+|   |   |   |-- clients/
+|   |   |   |-- config/
+|   |   |   |-- driver/
+|   |   |   |-- models/
+|   |   |   |-- pages/
+|   |   |   `-- utils/
+|   |   `-- resources/
+|   |
+|   `-- test/
+|       |-- java/com/healthpoint/automation/
+|       |   |-- api/
+|       |   |-- base/
+|       |   |-- db/
+|       |   |-- listeners/
+|       |   |-- retry/
+|       |   |-- ui/
+|       |   `-- utils/
+|       `-- resources/
+|
+|-- Dockerfile
+|-- docker-compose.yml
+|-- pom.xml
+|-- testng.xml
+`-- README.md
 ```
 
-## How the Framework Is Organized
+## Framework Design
 
-I keep API request logic separate from the tests.
+The framework separates test scenarios from implementation details.
+
+For API testing:
 
 ```text
-Test
-  ↓
-PostClient
-  ↓
-REST Assured
-  ↓
-API
+Test -> PostClient -> REST Assured -> API
 ```
 
-For example, `PostClient` handles communication with the Posts API, while the test class focuses on the scenario and validation.
-
-This makes it easier to reuse request logic and maintain the framework as more tests are added.
-
-## Main Components
-
-### ConfigReader
-
-`ConfigReader` loads values from `config.properties`.
-
-I use it so values such as the base URL are not hardcoded inside every test.
-
-### BaseApiTest
-
-`BaseApiTest` contains common API setup.
-
-It configures REST Assured before the tests run.
-
-### PostClient
-
-`PostClient` contains reusable request logic for Posts endpoints.
-
-This keeps REST Assured request code out of individual test classes when the same logic can be reused.
-
-### Post
-
-`Post` is the Java model used to represent post data returned by the API.
-
-## Configuration
-
-The project currently uses the public JSONPlaceholder API.
-
-```properties
-base.url=https://jsonplaceholder.typicode.com
-```
-
-Configuration is stored in:
+For UI testing:
 
 ```text
-src/main/resources/config.properties
+Test -> Page Object -> DriverFactory -> WebDriver
 ```
 
-Passwords, tokens, API keys, and other secrets should not be committed to the repository.
+For database testing:
 
-## Running the Tests
+```text
+Test -> DatabaseUtils -> SQL -> H2
+```
+
+This keeps request handling, browser management, database access, and test assertions in separate layers.
+
+## Parallel Execution
+
+TestNG runs test methods in parallel:
+
+```xml
+<suite name="HealthPoint Automation Suite"
+       parallel="methods"
+       thread-count="2">
+```
+
+WebDriver instances are managed using:
+
+```java
+ThreadLocal<WebDriver>
+```
+
+This prevents parallel UI tests from sharing the same browser instance.
+
+Parallel execution has been verified through thread-level logging during test runs.
+
+## Retry Handling
+
+The framework includes automatic retry handling for transient failures using TestNG:
+
+- `RetryAnalyzer`
+- `RetryTransformer`
+
+Retries are intentionally limited to one additional attempt to avoid masking genuine failures.
+
+## Allure Reporting
+
+Allure reporting is integrated with Maven and TestNG.
+
+Generate a report:
+
+```bash
+mvn allure:report
+```
+
+Reports include:
+
+- Features
+- Stories
+- Severity
+- Test descriptions
+- Execution results
+- Environment metadata
+
+Environment information includes Java, Maven, TestNG, Selenium, REST Assured, H2, Chrome, and CI execution details.
+
+## CI/CD
+
+GitHub Actions automatically executes the test suite on pushes and pull requests to `main`.
+
+```text
+Git Push / Pull Request
+          |
+          v
+    GitHub Actions
+          |
+          v
+      Java 17
+          |
+          v
+    mvn clean test
+          |
+          v
+     Allure Report
+          |
+          v
+   CI Artifacts
+```
+
+The pipeline publishes:
+
+- Allure raw results
+- Allure HTML report
+
+## Docker Execution
+
+The framework supports fully containerized execution with Docker Compose.
+
+```text
++---------------------------+
+| healthpoint-tests         |
+| Java 17 + Maven           |
+| Automation Framework      |
++-------------+-------------+
+              |
+              | RemoteWebDriver
+              v
++---------------------------+
+| healthpoint-selenium      |
+| Selenium Standalone       |
+| Chrome                    |
++---------------------------+
+```
+
+The test container communicates with Selenium through the Docker network:
+
+```text
+http://selenium-chrome:4444
+```
+
+This separates the automation runtime from the browser runtime and provides a reproducible execution environment.
+
+## Running Locally
 
 Requirements:
 
-* Java 17+
-* Maven
+- Java 17+
+- Maven
+- Google Chrome
 
-Run the full suite from the project root:
+Run all tests:
 
 ```bash
 mvn clean test
 ```
 
-Successful execution should finish with:
+Expected result:
 
 ```text
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
 BUILD SUCCESS
 ```
 
-## Current Test Coverage
+## Running with Docker
 
-The framework currently includes:
+Requirements:
 
-* API health check
-* GET post validation
-* HTTP status validation
-* Response data validation
+- Docker
+- Docker Compose
 
-I am continuing to expand the API layer with negative and additional CRUD scenarios.
+Build and execute the complete environment:
 
-## Next Steps
+```bash
+docker compose up --build
+```
 
-My next improvements are:
+Expected result:
 
-* Negative API testing
-* POST, PUT, PATCH, and DELETE coverage
-* Request and response logging
-* Reusable assertions
-* Test data handling
+```text
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
 
-After strengthening the API layer, I plan to add:
+Stop the environment:
 
-* Selenium WebDriver
-* Page Object Model
-* SQL database validation
-* Allure reporting
-* Parallel execution
-* GitHub Actions / Jenkins
-* Docker support
+```bash
+docker compose down
+```
 
-## Why I Built It This Way
+## Configuration
 
-My goal is to build a framework that stays readable and maintainable as the test suite grows.
+Runtime configuration is stored in:
 
-Instead of putting configuration, requests, data handling, and assertions into one class, I am separating those responsibilities into reusable components.
+```text
+src/main/resources/config.properties
+```
 
-This project is still being developed, and I am adding each layer step by step while keeping the existing tests working.
+Example:
+
+```properties
+base.url=https://jsonplaceholder.typicode.com
+```
+
+Credentials, tokens, and other secrets should not be committed to the repository.
+
+## Key Engineering Features
+
+- Multi-layer API, UI, and database automation
+- Reusable API client architecture
+- Page Object Model
+- Thread-safe WebDriver management
+- Parallel TestNG execution
+- Automatic retry handling
+- Allure reporting
+- Environment metadata
+- GitHub Actions CI/CD
+- Dockerized test execution
+- RemoteWebDriver
+- Selenium Grid
+- Local and containerized execution
+
+## Future Improvements
+
+- Cross-browser execution
+- Parameterized environments
+- Expanded negative API coverage
+- Additional UI scenarios
+- External test data management
+- Selenium Grid browser matrix
+- Cloud-based test execution
