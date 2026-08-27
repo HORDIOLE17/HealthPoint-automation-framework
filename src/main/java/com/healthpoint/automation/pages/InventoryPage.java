@@ -18,6 +18,7 @@ public class InventoryPage {
     private final By sortDropdown = By.cssSelector("[data-test='product-sort-container']");
     private final By itemPrices = By.cssSelector("[data-test='inventory-item-price']");
     private final By menuButton = By.id("react-burger-menu-btn");
+    private final By menuContainer = By.className("bm-menu-wrap");
     private final By logoutLink = By.id("logout_sidebar_link");
 
     public InventoryPage(WebDriver driver) {
@@ -56,7 +57,23 @@ public class InventoryPage {
 
     public LoginPage logout() {
         wait.until(ExpectedConditions.elementToBeClickable(menuButton)).click();
+
+        wait.until(
+                ExpectedConditions.attributeToBe(
+                        menuContainer,
+                        "aria-hidden",
+                        "false"
+                )
+        );
+
         wait.until(ExpectedConditions.elementToBeClickable(logoutLink)).click();
-        return new LoginPage(driver);
+
+        wait.until(
+                ExpectedConditions.not(
+                        ExpectedConditions.urlContains("inventory")
+                )
+        );
+
+        return new LoginPage(driver).waitUntilLoaded();
     }
 }
