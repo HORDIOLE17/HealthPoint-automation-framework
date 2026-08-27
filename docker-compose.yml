@@ -1,6 +1,6 @@
 services:
   selenium-chrome:
-    image: selenium/standalone-chrome:latest
+    image: selenium/standalone-chrome@sha256:cd778b6f38d99d1e14a05a767f576aff2face98d5202a2192d857614c265ec4d
     container_name: healthpoint-selenium
     shm_size: 2gb
     ports:

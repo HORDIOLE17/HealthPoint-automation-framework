@@ -2,27 +2,31 @@ package com.healthpoint.automation.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 public class InventoryPage {
 
-    private final WebDriver driver;
+    private final WebDriverWait wait;
 
     private final By pageTitle =
             By.cssSelector("[data-test='title']");
 
     public InventoryPage(WebDriver driver) {
-        this.driver = driver;
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
     public boolean isInventoryPageDisplayed() {
-
-        return driver.findElement(pageTitle)
-                .isDisplayed();
+        return wait.until(
+                ExpectedConditions.visibilityOfElementLocated(pageTitle)
+        ).isDisplayed();
     }
 
     public String getPageTitle() {
-
-        return driver.findElement(pageTitle)
-                .getText();
+        return wait.until(
+                ExpectedConditions.visibilityOfElementLocated(pageTitle)
+        ).getText();
     }
 }

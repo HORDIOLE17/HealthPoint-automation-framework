@@ -65,6 +65,10 @@ public class DriverFactory {
         return driver.get();
     }
 
+    public static boolean hasDriver() {
+        return driver.get() != null;
+    }
+
     public static void quitDriver() {
 
         if (driver.get() != null) {

@@ -3,7 +3,6 @@ package com.healthpoint.automation.api;
 import com.healthpoint.automation.base.BaseApiTest;
 import com.healthpoint.automation.clients.PostClient;
 import com.healthpoint.automation.models.Post;
-import com.healthpoint.automation.utils.ThreadLogger;
 import io.qameta.allure.Description;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
@@ -22,7 +21,6 @@ public class CreatePostAPITest extends BaseApiTest {
     @Description("Verifies that a new post can be created with the expected response data")
     public void shouldCreatePost() {
 
-        ThreadLogger.logCurrentThread("CreatePostAPITest");
 
         Post post = new Post(
                 1,

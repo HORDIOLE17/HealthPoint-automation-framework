@@ -16,6 +16,11 @@ public class RetryTransformer implements IAnnotationTransformer {
             Method testMethod
     ) {
 
-        annotation.setRetryAnalyzer(RetryAnalyzer.class);
+        if (testClass != null &&
+                testClass.getPackageName()
+                        .equals("com.healthpoint.automation.ui")) {
+
+            annotation.setRetryAnalyzer(RetryAnalyzer.class);
+        }
     }
 }

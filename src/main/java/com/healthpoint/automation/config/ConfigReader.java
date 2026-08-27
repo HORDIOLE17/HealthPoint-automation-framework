@@ -26,14 +26,25 @@ public class ConfigReader {
     }
 
     public static String get(String key) {
+
+        String envKey = key
+                .toUpperCase()
+                .replace(".", "_");
+
+        String envValue = System.getenv(envKey);
+
+        if (envValue != null && !envValue.isBlank()) {
+            return envValue;
+        }
+
         String value = properties.getProperty(key);
+
         if (value == null || value.isBlank()) {
-            throw  new RuntimeException(
-                    "Property not found or empty: + key"
+            throw new RuntimeException(
+                    "Property not found or empty: " + key
             );
         }
 
         return value;
-
     }
 }

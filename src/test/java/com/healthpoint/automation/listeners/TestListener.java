@@ -1,4 +1,3 @@
-
 package com.healthpoint.automation.listeners;
 
 import com.healthpoint.automation.driver.DriverFactory;
@@ -16,22 +15,23 @@ public class TestListener implements ITestListener {
     @Override
     public void onTestFailure(ITestResult result) {
 
-        try {
-            WebDriver driver = DriverFactory.getDriver();
-
-            byte[] screenshot =
-                    ((TakesScreenshot) driver)
-                            .getScreenshotAs(OutputType.BYTES);
-
-            Allure.addAttachment(
-                    "Screenshot on failure",
-                    new ByteArrayInputStream(screenshot)
-            );
-
-        } catch (Exception e) {
-            System.out.println(
-                    "Unable to capture screenshot: " + e.getMessage()
-            );
+        if (!DriverFactory.hasDriver()) {
+            return;
         }
+
+        WebDriver driver = DriverFactory.getDriver();
+
+        if (!(driver instanceof TakesScreenshot)) {
+            return;
+        }
+
+        byte[] screenshot =
+                ((TakesScreenshot) driver)
+                        .getScreenshotAs(OutputType.BYTES);
+
+        Allure.addAttachment(
+                "Screenshot on failure",
+                new ByteArrayInputStream(screenshot)
+        );
     }
 }
