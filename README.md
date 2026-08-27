@@ -1,6 +1,6 @@
 # HealthPoint Automation Framework
 
-[![HealthPoint CI](https://github.com/Hordyoleh17/Healthpoint-automation-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/Hordyoleh17/Healthpoint-automation-framework/actions/workflows/ci.yml)
+[![HealthPoint CI](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/ci.yml)
 
 Java-based test automation framework for API, UI, and database validation with parallel execution, automated reporting, CI/CD, and containerized browser execution.
 
