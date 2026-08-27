@@ -1,7 +1,9 @@
 package com.healthpoint.automation.pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -66,7 +68,8 @@ public class InventoryPage {
                 )
         );
 
-        wait.until(ExpectedConditions.elementToBeClickable(logoutLink)).click();
+        WebElement stableLogoutLink = waitForElementToStopMoving(logoutLink);
+        stableLogoutLink.click();
 
         wait.until(
                 ExpectedConditions.not(
@@ -75,5 +78,31 @@ public class InventoryPage {
         );
 
         return new LoginPage(driver).waitUntilLoaded();
+    }
+
+    private WebElement waitForElementToStopMoving(By locator) {
+        Point[] previousPosition = {null};
+        int[] stableChecks = {0};
+
+        return wait.until(currentDriver -> {
+            WebElement element = currentDriver.findElement(locator);
+
+            if (!element.isDisplayed()) {
+                previousPosition[0] = null;
+                stableChecks[0] = 0;
+                return null;
+            }
+
+            Point currentPosition = element.getLocation();
+
+            if (currentPosition.equals(previousPosition[0])) {
+                stableChecks[0]++;
+            } else {
+                previousPosition[0] = currentPosition;
+                stableChecks[0] = 0;
+            }
+
+            return stableChecks[0] >= 2 ? element : null;
+        });
     }
 }
