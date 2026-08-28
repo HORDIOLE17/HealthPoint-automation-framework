@@ -1,4 +1,4 @@
-# HealthPoint Automation Framework
+# Enterprise Test Automation Framework
 
 [![HealthPoint Automation CI](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/tests.yml/badge.svg)](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/tests.yml)
 
