@@ -7,8 +7,8 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.healthpoint</groupId>
-    <artifactId>healthpoint-automation-framework</artifactId>
+    <groupId>io.github.hordiole17</groupId>
+    <artifactId>multi-layer-test-automation-framework</artifactId>
     <version>1.0.0</version>
 
     <properties>
