@@ -1,6 +1,7 @@
 # Java SDET Test Automation Framework
 
 [![HealthPoint Automation CI](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/tests.yml/badge.svg)](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/tests.yml)
+[![Publish Allure Report](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/allure-pages.yml/badge.svg)](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/allure-pages.yml)
 
 Java-based test automation framework covering **API, UI, and database validation** with parallel execution, cross-browser testing, automated reporting, GitHub Actions CI, and containerized browser execution.
 
@@ -27,7 +28,11 @@ The CI workflow executes the full suite on every push and pull request to `main`
 
 ### Allure Results
 
-Allure reports include test results, environment metadata, feature/story annotations, severity, descriptions, and failure evidence.
+Allure reports include test results, environment metadata, feature/story annotations, severity, descriptions, failure evidence, and historical trend data across published runs.
+
+**Live report:** [Open the latest Allure report](https://hordiole17.github.io/HealthPoint-automation-framework/)
+
+The report is regenerated automatically after a successful `main` CI run and published from the `gh-pages` branch.
 
 ![Allure Suites](docs/images/allure-suites.png)
 
@@ -133,7 +138,8 @@ HealthPoint-automation-framework
 |
 |-- .github/
 |   `-- workflows/
-|       `-- tests.yml
+|       |-- tests.yml
+|       `-- allure-pages.yml
 |
 |-- src/
 |   |-- main/
@@ -222,8 +228,9 @@ Reports include:
 - Execution results
 - Environment metadata
 - Failure screenshots for UI failures
+- Historical trend data in the published report
 
-GitHub Actions also uploads browser-specific Allure results and generated HTML reports as workflow artifacts.
+GitHub Actions uploads browser-specific Allure results and generated HTML reports as workflow artifacts. After a successful `main` run, a separate publishing workflow downloads the Chrome results, restores prior Allure history, generates a fresh report, and updates the `gh-pages` branch.
 
 ## Continuous Integration
 
@@ -245,19 +252,33 @@ GitHub Actions runs the complete suite for pushes and pull requests to `main` us
                mvn clean test
                      |
                      v
-                Allure Report
+             Allure Artifacts
+                     |
+           successful main run
                      |
                      v
-                CI Artifacts
+           Publish Allure Report
+                     |
+                     v
+                 gh-pages
 ```
 
-For each browser, the pipeline:
+For each browser, the test pipeline:
 
 1. configures Java 17 and the selected browser;
 2. runs the full Maven/TestNG suite;
 3. generates an Allure HTML report;
 4. uploads raw Allure results;
 5. uploads the browser-specific Allure HTML artifact.
+
+The publishing workflow then:
+
+1. downloads results from the successful CI run;
+2. restores history from the previous published report;
+3. regenerates Allure with trend data;
+4. publishes the report to `gh-pages`.
+
+Workflow actions use current major versions, Maven runs in non-interactive batch mode, CI jobs have explicit timeouts, artifact retention is configured, and missing report artifacts fail loudly instead of being silently ignored.
 
 Current browser matrix status:
 
@@ -365,8 +386,9 @@ Real credentials, tokens, and secrets should never be committed to the repositor
 - Parallel TestNG execution
 - Automatic retry handling
 - Failure screenshot attachments
-- Allure reporting and environment metadata
+- Allure reporting with retained history and trends
 - GitHub Actions browser matrix
+- Automated live report publishing
 - Browser-specific CI artifacts
 - Dockerized Chrome and Firefox execution
 - RemoteWebDriver support
@@ -380,4 +402,3 @@ Real credentials, tokens, and secrets should never be committed to the repositor
 - Additional end-to-end business workflows
 - Formal JSON Schema validation
 - Cloud-based browser execution
-- Published Allure test-history and trend reporting
