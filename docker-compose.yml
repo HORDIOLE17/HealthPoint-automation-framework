@@ -2,7 +2,7 @@ services:
 
   selenium-chrome:
     image: selenium/standalone-chrome@sha256:cd778b6f38d99d1e14a05a767f576aff2face98d5202a2192d857614c265ec4d
-    container_name: healthpoint-selenium-chrome
+    container_name: multilayer-selenium-chrome
     shm_size: 2gb
     ports:
       - "4444:4444"
@@ -20,7 +20,7 @@ services:
 
   selenium-firefox:
     image: selenium/standalone-firefox@sha256:54bf6b69b790212c5dd1ae4934241d2dccd6500b14269b91e7ddfeef3f32c2a6
-    container_name: healthpoint-selenium-firefox
+    container_name: multilayer-selenium-firefox
     shm_size: 2gb
     ports:
       - "4445:4444"
@@ -36,11 +36,11 @@ services:
     profiles:
       - firefox
 
-  healthpoint-tests-chrome:
+  automation-tests-chrome:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: healthpoint-tests-chrome
+    container_name: multilayer-tests-chrome
     depends_on:
       selenium-chrome:
         condition: service_healthy
@@ -51,11 +51,11 @@ services:
     profiles:
       - chrome
 
-  healthpoint-tests-firefox:
+  automation-tests-firefox:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: healthpoint-tests-firefox
+    container_name: multilayer-tests-firefox
     depends_on:
       selenium-firefox:
         condition: service_healthy
