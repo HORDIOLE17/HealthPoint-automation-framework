@@ -1,17 +1,17 @@
-# Java SDET Test Automation Framework
+# Multi-Layer Test Automation Framework
 
-[![HealthPoint Automation CI](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/tests.yml/badge.svg)](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/tests.yml)
+[![Automation CI](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/tests.yml/badge.svg)](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/tests.yml)
 [![Publish Allure Report](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/allure-pages.yml/badge.svg)](https://github.com/HORDIOLE17/HealthPoint-automation-framework/actions/workflows/allure-pages.yml)
 
-Java-based test automation framework covering **API, UI, and database validation** with parallel execution, cross-browser testing, automated reporting, GitHub Actions CI, and containerized browser execution.
+Java-based SDET portfolio framework covering **API, UI, and database validation** with parallel execution, cross-browser testing, automated reporting, GitHub Actions CI, and containerized browser execution.
 
-HealthPoint is a portfolio automation framework built to demonstrate reusable SDET engineering patterns across independent public demo targets. SauceDemo is used for browser workflows, JSONPlaceholder for REST API validation, and an in-memory H2 database for SQL/data-layer scenarios. These targets are intentionally independent; the project demonstrates framework architecture rather than representing a single production healthcare application.
+The framework uses independent public demo targets so each automation layer can be exercised realistically: SauceDemo for browser workflows, JSONPlaceholder for REST API validation, and an in-memory H2 database for SQL/data-layer scenarios. The goal is to demonstrate reusable test architecture and engineering practices rather than model one production application.
 
-The same test suite can run locally, in GitHub Actions, or through Docker using `RemoteWebDriver` with Selenium standalone/grid-compatible browser containers.
+The same suite can run locally, in GitHub Actions, or through Docker using `RemoteWebDriver` with Selenium standalone/grid-compatible browser containers.
 
 ## Execution Evidence
 
-The current regression suite contains **15 automated tests** and is validated in GitHub Actions against both **Chrome** and **Firefox**.
+The regression suite contains **15 automated tests** and is validated in GitHub Actions against both **Chrome** and **Firefox**.
 
 ```text
 Tests run: 15
@@ -134,7 +134,7 @@ This keeps HTTP request handling, browser lifecycle management, page interaction
 ## Project Structure
 
 ```text
-HealthPoint-automation-framework
+multi-layer-test-automation-framework
 |
 |-- .github/
 |   `-- workflows/
@@ -169,6 +169,8 @@ HealthPoint-automation-framework
 `-- README.md
 ```
 
+> The existing Java package namespace is intentionally retained to avoid a cosmetic package migration that would not change framework behavior.
+
 ## Browser and Driver Management
 
 `DriverFactory` supports:
@@ -188,27 +190,16 @@ Unsupported browser values fail fast with a clear exception.
 TestNG runs test methods in parallel:
 
 ```xml
-<suite name="HealthPoint Automation Suite"
+<suite name="Multi-Layer Test Automation Suite"
        parallel="methods"
        thread-count="2">
 ```
 
-WebDriver instances are isolated using:
-
-```java
-ThreadLocal<WebDriver>
-```
-
-This prevents parallel UI tests from sharing browser sessions.
+WebDriver instances are isolated using `ThreadLocal<WebDriver>`, preventing parallel UI tests from sharing browser sessions.
 
 ## Retry and Failure Handling
 
-Transient test failures are handled with:
-
-- `RetryAnalyzer`
-- `RetryTransformer`
-
-Retries are intentionally limited to one additional attempt so genuine defects are not hidden.
+Transient test failures are handled with `RetryAnalyzer` and `RetryTransformer`. Retries are intentionally limited to one additional attempt so genuine defects are not hidden.
 
 When a UI test fails, the TestNG listener captures a browser screenshot and attaches it to Allure.
 
@@ -220,15 +211,7 @@ Generate the Allure report locally with:
 mvn allure:report
 ```
 
-Reports include:
-
-- Features and stories
-- Severity
-- Test descriptions
-- Execution results
-- Environment metadata
-- Failure screenshots for UI failures
-- Historical trend data in the published report
+Reports include features and stories, severity, descriptions, execution results, environment metadata, UI failure screenshots, and historical trend data in the published report.
 
 GitHub Actions uploads browser-specific Allure results and generated HTML reports as workflow artifacts. After a successful `main` run, a separate publishing workflow downloads the Chrome results, restores prior Allure history, generates a fresh report, and updates the `gh-pages` branch.
 
@@ -263,22 +246,9 @@ GitHub Actions runs the complete suite for pushes and pull requests to `main` us
                  gh-pages
 ```
 
-For each browser, the test pipeline:
+For each browser, the pipeline configures Java 17 and the selected browser, runs the full Maven/TestNG suite, generates an Allure HTML report, and uploads browser-specific results and report artifacts.
 
-1. configures Java 17 and the selected browser;
-2. runs the full Maven/TestNG suite;
-3. generates an Allure HTML report;
-4. uploads raw Allure results;
-5. uploads the browser-specific Allure HTML artifact.
-
-The publishing workflow then:
-
-1. downloads results from the successful CI run;
-2. restores history from the previous published report;
-3. regenerates Allure with trend data;
-4. publishes the report to `gh-pages`.
-
-Workflow actions use current major versions, Maven runs in non-interactive batch mode, CI jobs have explicit timeouts, artifact retention is configured, and missing report artifacts fail loudly instead of being silently ignored.
+The publishing workflow restores previous Allure history before regenerating and publishing the latest report.
 
 Current browser matrix status:
 
@@ -290,15 +260,6 @@ Firefox : PASS
 ## Docker / Remote Browser Execution
 
 Docker Compose provides separate Chrome and Firefox Selenium standalone environments. These containers expose WebDriver endpoints used by `RemoteWebDriver` and are compatible with Selenium Grid-style remote execution without claiming a distributed hub/node topology.
-
-```text
-Automation Test Container
-          |
-          | RemoteWebDriver
-          v
-Selenium Standalone Browser
-     Chrome or Firefox
-```
 
 Chrome profile:
 
@@ -319,31 +280,19 @@ Chrome  -> http://selenium-chrome:4444
 Firefox -> http://selenium-firefox:4444
 ```
 
-Remote browser execution evidence:
-
 ![Remote Browser Execution](docs/images/selenium-grid.png)
 
 ## Running Locally
 
-Requirements:
-
-- Java 17+
-- Maven
-- Chrome or Firefox
-
-Run the default configured browser:
+Requirements: Java 17+, Maven, and Chrome or Firefox.
 
 ```bash
 mvn clean test
 ```
 
-Run explicitly on Chrome:
-
 ```bash
 BROWSER=chrome mvn clean test
 ```
-
-Run explicitly on Firefox:
 
 ```bash
 BROWSER=firefox mvn clean test
@@ -358,38 +307,20 @@ BUILD SUCCESS
 
 ## Configuration
 
-Runtime configuration is stored in:
-
-```text
-src/main/resources/config.properties
-```
-
-Example:
-
-```properties
-base.url=https://jsonplaceholder.typicode.com
-```
-
-The repository uses only disposable demo/test configuration. The H2 database runs in memory, so no production database credentials are required. Environment variables can override browser and remote WebDriver settings.
-
-Real credentials, tokens, and secrets should never be committed to the repository.
+Runtime configuration is stored in `src/main/resources/config.properties`. The repository uses disposable demo/test configuration and an in-memory H2 database. Environment variables can override browser and remote WebDriver settings. Real credentials, tokens, and secrets should never be committed to the repository.
 
 ## Engineering Highlights
 
 - Multi-layer API, UI, and database automation
 - Reusable REST Assured client architecture
 - API contract and negative validation
-- Page Object Model
-- Explicit UI synchronization
+- Page Object Model and explicit UI synchronization
 - Chrome and Firefox cross-browser execution
 - Thread-safe WebDriver management
 - Parallel TestNG execution
-- Automatic retry handling
-- Failure screenshot attachments
+- Automatic retry and failure screenshot handling
 - Allure reporting with retained history and trends
-- GitHub Actions browser matrix
-- Automated live report publishing
-- Browser-specific CI artifacts
+- GitHub Actions browser matrix and automated live report publishing
 - Dockerized Chrome and Firefox execution
 - RemoteWebDriver support
 - PreparedStatement-based database validation
