@@ -1,4 +1,4 @@
-name: HealthPoint Automation CI
+name: Multi-Layer Automation CI
 
 on:
   push:
