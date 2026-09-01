@@ -11,6 +11,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: write
 
 env:
@@ -67,7 +68,6 @@ jobs:
         run: |
           git fetch origin gh-pages:gh-pages || true
           if git show-ref --verify --quiet refs/heads/gh-pages; then
-            git show gh-pages:history/.keep >/dev/null 2>&1 || true
             rm -rf previous-history
             mkdir -p previous-history
             git archive gh-pages history 2>/dev/null | tar -x || true
@@ -75,10 +75,8 @@ jobs:
               cp -R history/. previous-history/ || true
               rm -rf history
             fi
-            if [ -d previous-history ]; then
-              mkdir -p allure-results/history
-              cp -R previous-history/. allure-results/history/ || true
-            fi
+            mkdir -p allure-results/history
+            cp -R previous-history/. allure-results/history/ 2>/dev/null || true
           fi
 
       - name: Install Allure CLI
@@ -91,38 +89,20 @@ jobs:
       - name: Generate Allure report
         run: allure generate allure-results --clean -o allure-report
 
-      - name: Prepare report history
-        run: |
-          mkdir -p allure-report/history
-          touch allure-report/.nojekyll
-
       - name: Publish report to gh-pages
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
+          touch allure-report/.nojekyll
           rm -rf publish
           mkdir publish
           cp -R allure-report/. publish/
 
-          rm -rf history
-          if [ -d allure-report/history ]; then
-            cp -R allure-report/history history
-          else
-            mkdir history
-          fi
-          touch history/.keep
-
           git checkout --orphan pages-publish
           git rm -rf . >/dev/null 2>&1 || true
           cp -R publish/. .
-          rm -rf publish
-          mkdir -p history
-          cp -R allure-report/history/. history/ 2>/dev/null || true
-          touch history/.keep
-          rm -rf allure-results allure-report previous-history allure.tgz allure-${ALLURE_VERSION}
+          rm -rf publish allure-results allure-report previous-history allure.tgz allure-${ALLURE_VERSION}
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "docs: publish Allure report for ${{ github.sha }}"
+          git commit -m "docs: publish Allure report"
           git push --force origin HEAD:gh-pages
