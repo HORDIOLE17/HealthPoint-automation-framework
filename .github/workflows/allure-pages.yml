@@ -1,0 +1,128 @@
+name: Publish Allure Report
+
+on:
+  workflow_run:
+    workflows:
+      - HealthPoint Automation CI
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  ALLURE_VERSION: 2.35.1
+
+jobs:
+  publish:
+    name: Publish live Allure report
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+          github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Download Chrome Allure results from CI run
+        if: github.event_name == 'workflow_run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p allure-results
+          gh run download "${{ github.event.workflow_run.id }}" \
+            --repo "${{ github.repository }}" \
+            --name allure-results-chrome \
+            --dir allure-results
+
+      - name: Download latest successful Chrome Allure results
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p allure-results
+          RUN_ID="$(gh run list \
+            --repo "${{ github.repository }}" \
+            --workflow tests.yml \
+            --branch main \
+            --status success \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')"
+          test -n "$RUN_ID"
+          gh run download "$RUN_ID" \
+            --repo "${{ github.repository }}" \
+            --name allure-results-chrome \
+            --dir allure-results
+
+      - name: Restore previous Allure history
+        run: |
+          git fetch origin gh-pages:gh-pages || true
+          if git show-ref --verify --quiet refs/heads/gh-pages; then
+            git show gh-pages:history/.keep >/dev/null 2>&1 || true
+            rm -rf previous-history
+            mkdir -p previous-history
+            git archive gh-pages history 2>/dev/null | tar -x || true
+            if [ -d history ]; then
+              cp -R history/. previous-history/ || true
+              rm -rf history
+            fi
+            if [ -d previous-history ]; then
+              mkdir -p allure-results/history
+              cp -R previous-history/. allure-results/history/ || true
+            fi
+          fi
+
+      - name: Install Allure CLI
+        run: |
+          curl -fsSL -o allure.tgz \
+            "https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/allure-${ALLURE_VERSION}.tgz"
+          tar -xzf allure.tgz
+          echo "$PWD/allure-${ALLURE_VERSION}/bin" >> "$GITHUB_PATH"
+
+      - name: Generate Allure report
+        run: allure generate allure-results --clean -o allure-report
+
+      - name: Prepare report history
+        run: |
+          mkdir -p allure-report/history
+          touch allure-report/.nojekyll
+
+      - name: Publish report to gh-pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rm -rf publish
+          mkdir publish
+          cp -R allure-report/. publish/
+
+          rm -rf history
+          if [ -d allure-report/history ]; then
+            cp -R allure-report/history history
+          else
+            mkdir history
+          fi
+          touch history/.keep
+
+          git checkout --orphan pages-publish
+          git rm -rf . >/dev/null 2>&1 || true
+          cp -R publish/. .
+          rm -rf publish
+          mkdir -p history
+          cp -R allure-report/history/. history/ 2>/dev/null || true
+          touch history/.keep
+          rm -rf allure-results allure-report previous-history allure.tgz allure-${ALLURE_VERSION}
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs: publish Allure report for ${{ github.sha }}"
+          git push --force origin HEAD:gh-pages
