@@ -3,7 +3,7 @@ name: Publish Allure Report
 on:
   workflow_run:
     workflows:
-      - HealthPoint Automation CI
+      - Multi-Layer Automation CI
     types:
       - completed
     branches:
